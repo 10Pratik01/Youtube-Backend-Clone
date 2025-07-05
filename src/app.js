@@ -18,6 +18,7 @@ app.use(cookieParser())
 import userRouter from "./routes/user.routes.js"
 
 //Declaration of routes 
+app.use("/api/v1/users", userRouter)
 
 const app = express(); 
 
