@@ -1,6 +1,6 @@
 import {asyncHandler} from "../utils/asyncHandler.js"; 
-
-
+import {ApiError} from "../utils/ApiError.js"
+import {User} from "../models/user.model.js"
 
 const registerUser = asyncHandler( async (req, res) => {
     /* 
@@ -15,8 +15,24 @@ const registerUser = asyncHandler( async (req, res) => {
         9. Return result
     */
     const {fullName, email, userName, password} = req.body
-    console.log("Email:", email )
+    console.log("Email:", email );
+
+    if(
+        [fullName, email, userName, password].some((field)=>field?.trim() === "")
+    ) {
+        throw new ApiError(400, "All fields are required")
+    }
     
+    const existingUser = User.findOne({
+        $or: [{ userName }, { email}]
+    })
+
+    if(existingUser) {
+        throw new ApiError(409, "User with username or email already exist")
+    }
+
+    
+
 })
 
 export  {registerUser}
