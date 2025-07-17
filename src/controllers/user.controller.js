@@ -25,6 +25,7 @@ const registerUser = asyncHandler( async (req, res) => {
         throw new ApiError(400, "All fields are required")
     }
     
+    // Checking for any existing users 
     const existingUser =  await User.findOne({
         $or: [{ userName }, { email}]
     })
@@ -33,14 +34,21 @@ const registerUser = asyncHandler( async (req, res) => {
         throw new ApiError(409, "User with username or email already exist")
     }
 
+
+    // creating a variable to store the images path
     const avatarLocalPath = req.files?.avatar[0]?.path; 
 
-    const coverImageLocalPath = req.files?.coverImage[0]?.path; 
+    // const coverImageLocalPath = req.files?.coverImage[0]?.path; 
+    let coverImageLocalPath; 
+    if(req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0){
+        coverImageLocalPath = req.files.coverImage[0].path
+    }
 
     if(!avatarLocalPath){
         throw new ApiError(400, "Avatar field is required")
     }
 
+    // uploading and storing the information of cloudinary in a variable
     const avatar = await uploadOnCloudinary(avatarLocalPath)
     const coverImage = await uploadOnCloudinary(coverImageLocalPath)
 
@@ -48,6 +56,7 @@ const registerUser = asyncHandler( async (req, res) => {
         throw new ApiError(400, "Avatar is required")
     }
 
+    // creating a user in mongoDB where avatar and coverImage are been stored as the url sent by cloudinary 
     const user = await User.create({
         fullName, 
         avatar: avatar.url, 
@@ -57,6 +66,7 @@ const registerUser = asyncHandler( async (req, res) => {
         userName: userName.toLowerCase(), 
     })
 
+    // Sending a success response where user and refresh token is removed from the list
     const createdUser = await User.findById(user._id).select(
         "-password -refreshToken"
     )
