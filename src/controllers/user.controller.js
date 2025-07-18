@@ -11,7 +11,7 @@ const generateAccessAndRefreshToken = async(userId) =>{
         const refreshToken = user.generateRefreshToken()
 
         user.refreshToken = refreshToken
-        user.save({validateBeforeSave : false})
+        await user.save({validateBeforeSave : false})
 
         return {accessToken , refreshToken}
 
@@ -126,9 +126,48 @@ const loginUser = asyncHandler(async (req, res) => {
 
     const {accessToken, refreshToken} = await generateAccessAndRefreshToken(user._id)
     
+    const logedInUser = await User.findById(user._id).select(
+        "-password -refreshToken"
+    )
      
+    const options = {
+        httpOnly: true, 
+        secure: true
+    }
+
+    return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie('refreshToken', refreshToken, options)
+    .json(
+        new ApiResponse(200, 
+            {
+                user: logedInUser, accessToken, refreshToken
+            }, 
+            "User logged in successfuly"
+        )
+    )
+
+
+
 
     
+})
+
+const logoutUser = asyncHandler(async (req, res) => {
+    /*
+        check if user exist 
+        check id user is logged in 
+        if user is logged in then log out 
+        delete refresh token and delet access token
+        clear cookies 
+    */
+
+
+        
+
+
+
 })
 
 export  {registerUser, loginUser}
