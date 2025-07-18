@@ -121,7 +121,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
     if (!user) throw new ApiError(404, "Email or userName not found"); 
 
-    const isPasswordValid = await User.isPasswordCorrect(password)
+    const isPasswordValid = await user.isPasswordCorrect(password)
 
     if(!isPasswordValid) throw new ApiError(401, "Invalid password")
 
@@ -164,7 +164,7 @@ const logoutUser = asyncHandler(async (req, res) => {
         clear cookies 
     */
     await User.findByIdAndUpdate(
-        req.person._id,
+        req.user._id,
         {
             $set:{
                 refreshToken : undefined
