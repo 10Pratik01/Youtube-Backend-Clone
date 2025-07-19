@@ -24,9 +24,9 @@ router.route("/login").post(
     loginUser
 )
 
-// router.route("/logout").post(
-//     verifyUser, 
-//     logoutUser
-// )
+router.route("/logout").post(
+    verifyUser, 
+    logoutUser
+)
 
 export { router }

@@ -4,6 +4,7 @@ import {User} from "../models/user.model.js"
 import { uploadOnCloudinary } from "../utils/cloudinary.js"; 
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { json } from "express";
+import jwt from "jsonwebtoken"
 
 const generateAccessAndRefreshToken = async(userId) =>{
     try {
@@ -187,4 +188,61 @@ const logoutUser = asyncHandler(async (req, res) => {
 
 })
 
+const refreshAccessToken = asyncHandler(async (req, res) => {
+    // geting token from user 
+    const incomingRefreshToken = await req.cookies?.refreshToken || req.body.refreshToken 
+
+    if(!incomingRefreshToken) {
+        throw new ApiError(401, "Unauthorized request")
+    }
+
+    try {
+        // verifying the token 
+        const verifyToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET)
+    
+        if(!verifyToken){
+            throw new ApiError(401 , "Session expired")
+        }
+    
+        // geting the user details from the user 
+        const user = await User.findOne(verifyToken?._id)
+    
+        if(!user){
+            throw new ApiError(401, "Invalid user Token")
+        }
+        
+        // cheking if the refresh token with the user is valid or used or expired with the token in the database
+        if(incomingRefreshToken !== user?.refreshToken){
+            throw new ApiError(401, "user token is not valid")
+        }
+    
+        const {accessToken, newrefreshToken} = await generateAccessAndRefreshToken(user._id)
+        
+        const options = {
+            httpOnly: true,
+            secure: true 
+        }
+    
+        const detailOfUser = User.findById(user._id).select(
+            "-password -refreshToken -accessToken -createdAt -updatedAt"
+        )
+    
+        return res
+        .status(200)
+        .cookie("accessToken", accessToken, options)
+        .cookie("refreshToken", newrefreshToken, options)
+        .json(
+            new ApiResponse(
+                200, 
+                detailOfUser,
+                "Access token generated successfully",
+    
+            )
+        )
+    } catch (error) {
+        throw new ApiError(401, error?.message || "Invalid user token")
+    }
+
+
+})
 export  {registerUser, loginUser, logoutUser}
