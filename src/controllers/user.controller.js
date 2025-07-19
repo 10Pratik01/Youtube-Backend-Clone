@@ -112,18 +112,21 @@ const loginUser = asyncHandler(async (req, res) => {
     const {email, password, userName} = req.body; 
 
     if(!(email || userName)) {
-        throw new ApiError(400, "User name or password is required")
+        throw new ApiError(400, "Email or userName is required")
+    }
+    if(!password) {
+        throw new ApiError(400, "Password is required")
     }
 
     const user = await User.findOne({
         $or : [{email}, {userName}]
     })
 
-    if (!user) throw new ApiError(404, "Email or userName not found"); 
+    if (!user) {throw new ApiError(404, "Email or userName not found")}; 
 
     const isPasswordValid = await user.isPasswordCorrect(password)
 
-    if(!isPasswordValid) throw new ApiError(401, "Invalid password")
+    if(!isPasswordValid){ throw new ApiError(401, "Invalid password")}
 
     const {accessToken, refreshToken} = await generateAccessAndRefreshToken(user._id)
     
@@ -133,7 +136,7 @@ const loginUser = asyncHandler(async (req, res) => {
      
     const options = {
         httpOnly: true, 
-        secure: true
+        secure: process.env.NODE_ENV === 'production'
     }
 
     return res
@@ -148,10 +151,6 @@ const loginUser = asyncHandler(async (req, res) => {
             "User logged in successfuly"
         )
     )
-
-
-
-
     
 })
 
@@ -167,7 +166,7 @@ const logoutUser = asyncHandler(async (req, res) => {
         req.user._id,
         {
             $set:{
-                refreshToken : undefined
+                refreshToken : undefined, 
             }
         },
         {
@@ -177,7 +176,7 @@ const logoutUser = asyncHandler(async (req, res) => {
     )
     const options = {
         httpOnly: true,
-        secure: ture
+        secure: process.env.NODE_ENV === 'production'
     }
     
     return res
