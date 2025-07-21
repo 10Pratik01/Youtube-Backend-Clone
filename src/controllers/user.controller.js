@@ -246,5 +246,92 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
 })
 
+const changeCurrentPassword = asyncHandler(async(req, res) => {
+    // getting the userId from the token or take the username from the user
+    const {oldPassword, newPassowrd, confirmPassword} = req.body
 
-export  {registerUser, loginUser, logoutUser, refreshAccessToken}
+    const user = await User.findById(req.user._id).select(
+        "-refreshToken"
+    )
+
+    const correctPassword = await user.isPasswordCorrect(oldPassword)
+
+    if(!correctPassword){
+        throw new ApiError(400, "password is incorrect")
+    }
+
+    // if(oldPassword == newPassowrd || oldPassword == confirmPassword){
+    //     throw new ApiError(400, "Passwords should not be same as previous password")
+    // }
+
+    // if(newPassowrd !== confirmPassword){
+    //     throw new ApiError(400, "Password dose not match")
+    // }
+
+    
+    user.passowrd = newPassowrd
+    user.save({validateBeforeSave: false})
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            {},
+            "Password changed successfully", 
+
+        )
+    )
+})
+
+const getCurrentuser = asyncHandler(async(req, res) => {
+    return res
+    .status(200)
+    .json(
+        200, req.user, "Successfully fetched the user"
+    )
+})
+
+const updateAccountDetails = asyncHandler(async(req ,res) => {
+    const {fullName, email} = req.body
+
+    if(!(fullName || email)){
+        throw new ApiError(400, "Please fill in the required fields")
+    }
+
+    const user = User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set:{
+                fullName: fullName,
+                email: email, 
+            }
+        },
+        {new:true}
+    ).select(
+        "-password -refreshToken"
+    )
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200, 
+            user,
+            "Account details updated successfully"
+        )
+    )
+})
+
+
+
+
+export  {
+    registerUser, 
+    loginUser, 
+    logoutUser, 
+    refreshAccessToken, 
+    changeCurrentPassword, 
+    getCurrentuser, 
+    updateAccountDetails
+}
