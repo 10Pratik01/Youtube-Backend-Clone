@@ -324,7 +324,9 @@ const updateAccountDetails = asyncHandler(async(req ,res) => {
 })
 
 const updateUserAvatar = asyncHandler( async(req, res) => {
+
     const avatarLocalPath = req.file?.path
+
     if(!avatarLocalPath){
         throw new ApiError( 400, "Avatar file is missing")
     }
@@ -339,7 +341,7 @@ const updateUserAvatar = asyncHandler( async(req, res) => {
         req.user._id,
         {
             $set:{
-                avatar:avatar
+                avatar:avatar.url
             }
         },
         {
@@ -362,10 +364,10 @@ const updateUserAvatar = asyncHandler( async(req, res) => {
 const updateUserCoverImage = asyncHandler( async(req, res) => {
     const updateUserCoverImage = req.file?.path
     if(!updateUserCoverImage){
-        throw new ApiError( 400, "Avatar file is missing")
+        throw new ApiError( 400, "coverImage file is missing")
     }
 
-    const avatar = await uploadOnCloudinary(updateUserCoverImage)
+    const coverImage = await uploadOnCloudinary(updateUserCoverImage)
 
     if(!avatar){
         throw new ApiError( 400, "Failed to upload the avatar on cloudinary")
@@ -375,7 +377,7 @@ const updateUserCoverImage = asyncHandler( async(req, res) => {
         req.user._id,
         {
             $set:{
-                avatar:avatar
+                coverImage:coverImage.url
             }
         },
         {
@@ -389,7 +391,7 @@ const updateUserCoverImage = asyncHandler( async(req, res) => {
         new ApiResponse(
             200, 
             user,
-            "Avatar updated successfully"
+            "coverImage updated successfully"
         )
     )
 })
