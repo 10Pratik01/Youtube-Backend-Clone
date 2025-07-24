@@ -288,7 +288,7 @@ const getCurrentuser = asyncHandler(async(req, res) => {
     return res
     .status(200)
     .json(
-        200, req.user, "Successfully fetched the user"
+        new ApiResponse(200, req.user, "Successfully fetched the user")
     )
 })
 
@@ -348,6 +348,7 @@ const updateUserAvatar = asyncHandler( async(req, res) => {
             new:true
         }
     )
+    
 
     return res
     .status(200)
@@ -359,7 +360,6 @@ const updateUserAvatar = asyncHandler( async(req, res) => {
         )
     )
 })
-
 
 const updateUserCoverImage = asyncHandler( async(req, res) => {
     const updateUserCoverImage = req.file?.path
